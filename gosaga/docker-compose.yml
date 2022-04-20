@@ -1,0 +1,59 @@
+version: '2'
+
+# 定义服务配置信息
+services:
+  # 定义nginx容器
+  saga:
+    # 指定根据哪个镜像来启动容器
+    image: registry.cn-hangzhou.aliyuncs.com/xwjs/saga:1.0
+    # 服务停止后自动重启
+    restart: always
+    # 指定容器与宿主机端口映射关系，8888是宿主机端口，80是容器端口，等同于docker run命令中的-p参数
+    ports:
+      - "8088:8088"
+    # 与php容器进行关联，等同于docker run命令中的--links命令
+    links:
+      - etcd:etcd
+      - mysql:mysql
+    # 定义依赖容器，当docker-compose要启动nginx容器时会先启动其依赖的容器
+    depends_on:
+      - mysql
+      - etcd
+    # 定义容器启动后的名字
+    container_name: saga
+
+  # 定义php容器
+  sagaapi:
+    image: registry.cn-hangzhou.aliyuncs.com/xwjs/saga-api:1.0
+    restart: always
+    ports:
+      - "8089:8088"
+    links:
+      - etcd:etcd
+      - mysql:mysql
+    depends_on:
+      - mysql
+      - etcd
+      - saga
+    container_name: saga_api
+
+  # 定义mysql容器
+  mysql:
+    image: registry.cn-hangzhou.aliyuncs.com/xwjs/mysql:saga
+    restart: always
+    # 开发环境配置，线上环境不配置
+    ports:
+      - "3307:3306"
+    # 等同于docker run命令中的-e参数
+    environment:
+      MYSQL_ROOT_PASSWORD: 1
+    container_name: saga_mysql
+
+  etcd:
+    image: bitnami/etcd
+    restart: always
+    environment:
+      ALLOW_NONE_AUTHENTICATION: "yes"
+    ports:
+      - "2378:2379"
+    container_name: saga_etcd
