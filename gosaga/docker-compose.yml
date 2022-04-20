@@ -41,9 +41,6 @@ services:
   mysql:
     image: registry.cn-hangzhou.aliyuncs.com/xwjs/mysql:saga
     restart: always
-    # 开发环境配置，线上环境不配置
-    ports:
-      - "3307:3306"
     # 等同于docker run命令中的-e参数
     environment:
       MYSQL_ROOT_PASSWORD: 1
@@ -54,6 +51,4 @@ services:
     restart: always
     environment:
       ALLOW_NONE_AUTHENTICATION: "yes"
-    ports:
-      - "2378:2379"
     container_name: saga_etcd
